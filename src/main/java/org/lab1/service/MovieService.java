@@ -12,6 +12,7 @@ import org.lab1.model.Movie;
 import org.lab1.model.Person;
 import org.lab1.repository.MovieRepository;
 import org.lab1.repository.PersonRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +26,7 @@ public class MovieService {
     private final MovieRepository movieRepository;
     private final PersonRepository personRepository;
     private final SseService sseService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public List<MovieDto> findAllMovies() {
         return DtoMapper.toMovieDtoList(movieRepository.findAll());
@@ -36,14 +38,16 @@ public class MovieService {
         return DtoMapper.toMovieDto(movie);
     }
 
+    @Transactional
     public MovieDto createMovie(MovieDto movieDto) {
         Movie movie = DtoMapper.toMovieEntity(movieDto);
         Movie savedMovie = movieRepository.save(movie);
         MovieDto resultDto = DtoMapper.toMovieDto(savedMovie);
-        sseService.sendEventToAll("movie-created", resultDto);
+        eventPublisher.publishEvent(new SseEvent("movie-created", resultDto));
         return resultDto;
     }
 
+    @Transactional
     public MovieDto updateMovie(Integer id, MovieDto movieDto) {
         Movie existingMovie = movieRepository.findById(id)
                 .orElseThrow(() -> new MovieNotFoundException("Movie with id " + id + " not found"));
@@ -74,7 +78,7 @@ public class MovieService {
 
         Movie updatedMovie = movieRepository.save(existingMovie);
         MovieDto resultDto = DtoMapper.toMovieDto(updatedMovie);
-        sseService.sendEventToAll("movie-updated", resultDto);
+        eventPublisher.publishEvent(new SseEvent("movie-updated", resultDto));
         return resultDto;
     }
 
@@ -94,17 +98,19 @@ public class MovieService {
         entity.setY(dto.getY());
     }
 
+    @Transactional
     public void deleteMovie(Integer id) {
         if (!movieRepository.existsById(id)) {
             throw new MovieNotFoundException("Movie with id " + id + " not found");
         }
         movieRepository.deleteById(id);
-        sseService.sendEventToAll("movie-deleted", id);
+        eventPublisher.publishEvent(new SseEvent("movie-deleted", id));
     }
 
+    @Transactional
     public void deleteMoviesByGenre(MovieGenre genre) {
         movieRepository.deleteAllByGenre(genre);
-        sseService.sendEventToAll("movies-deleted-by-genre", genre.name());
+        eventPublisher.publishEvent(new SseEvent("movies-deleted-by-genre", genre.name()));
     }
 
     public Long getGoldenPalmSum() {
@@ -161,6 +167,7 @@ public class MovieService {
         }
         movieRepository.saveAll(toMovies);
 
-        sseService.sendEventToAll("oscars-redistributed", "Oscars redistributed from " + fromGenre + " to " + toGenre);
+        String eventData = "Oscars redistributed from " + fromGenre + " to " + toGenre;
+        eventPublisher.publishEvent(new SseEvent("oscars-redistributed", eventData));
     }
 }
