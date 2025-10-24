@@ -13,9 +13,16 @@ import org.lab1.model.Person;
 import org.lab1.repository.MovieRepository;
 import org.lab1.repository.PersonRepository;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageImpl;
+import jakarta.persistence.criteria.Predicate;
 
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,8 +35,24 @@ public class MovieService {
     private final SseService sseService;
     private final ApplicationEventPublisher eventPublisher;
 
-    public List<MovieDto> findAllMovies() {
-        return DtoMapper.toMovieDtoList(movieRepository.findAll());
+    public Page<MovieDto> findAllMovies(Pageable pageable, String name, String genre, String directorName) {
+        Specification<Movie> spec = (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (name != null && !name.isEmpty()) {
+                predicates.add(criteriaBuilder.equal(criteriaBuilder.lower(root.get("name")), name.toLowerCase()));
+            }
+            if (genre != null && !genre.isEmpty()) {
+                predicates.add(criteriaBuilder.equal(root.get("genre"), MovieGenre.valueOf(genre.toUpperCase())));
+            }
+            if (directorName != null && !directorName.isEmpty()) {
+                predicates.add(criteriaBuilder.equal(criteriaBuilder.lower(root.get("director").get("name")), directorName.toLowerCase()));
+            }
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+
+        Page<Movie> moviePage = movieRepository.findAll(spec, pageable);
+        List<MovieDto> dtos = DtoMapper.toMovieDtoList(moviePage.getContent());
+        return new PageImpl<>(dtos, pageable, moviePage.getTotalElements());
     }
 
     public MovieDto findMovieById(Integer id) {

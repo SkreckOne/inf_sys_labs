@@ -1,14 +1,26 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import * as movieApi from '../api/movieApi'; // Импортируем все функции API
+import React, { useState, useEffect, useCallback } from 'react';
+import * as movieApi from '../api/movieApi';
 import MovieForm from './MovieForm';
 
 const MovieList = () => {
     const [movies, setMovies] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [movieToEdit, setMovieToEdit] = useState(null);
-    const [filter, setFilter] = useState('');
-    const [filterColumn, setFilterColumn] = useState('name');
-    const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
+
+    const [pagination, setPagination] = useState({
+        page: 0,
+        size: 10,
+        totalPages: 0,
+    });
+
+    // --- НОВЫЙ БЛОК: Состояние для фильтрации и сортировки ---
+    const [filters, setFilters] = useState({
+        name: '',
+        genre: '',
+        directorName: '',
+    });
+    const [sort, setSort] = useState({ key: 'id', order: 'asc' });
+
 
     const [deleteGenre, setDeleteGenre] = useState('DRAMA');
     const [tagline, setTagline] = useState('');
@@ -17,16 +29,17 @@ const MovieList = () => {
 
     const genres = ['DRAMA', 'COMEDY', 'MUSICAL', 'ADVENTURE', 'SCIENCE_FICTION'];
 
-
-    const fetchMovies = async () => {
+    // --- Обновленная функция для запроса данных ---
+    const fetchMovies = useCallback(async () => {
         try {
-            const response = await movieApi.getMovies();
-            setMovies(response.data);
-            console.log("Data fetched and table updated!");
+            const response = await movieApi.getMovies(pagination.page, pagination.size, filters, sort);
+            setMovies(response.data.content);
+            setPagination(prev => ({ ...prev, totalPages: response.data.totalPages }));
+            console.log(`Data fetched for page: ${pagination.page}, sort: ${sort.key}, filters:`, filters);
         } catch (error) {
             console.error("Failed to fetch movies", error);
         }
-    };
+    }, [pagination.page, pagination.size, filters, sort]);
 
     useEffect(() => {
         fetchMovies();
@@ -35,10 +48,9 @@ const MovieList = () => {
         eventSource.onopen = () => console.log("SSE Connection Opened!");
         eventSource.onerror = (err) => console.error("SSE Error:", err);
 
-
         const handleEvent = (event) => {
             console.log("Received SSE event:", event.type);
-            fetchMovies();
+            fetchMovies(); // Перезагружаем данные с учетом текущих фильтров/сортировки
         };
 
         eventSource.addEventListener('movie-created', handleEvent);
@@ -51,7 +63,29 @@ const MovieList = () => {
             console.log("Closing SSE connection.");
             eventSource.close();
         };
-    }, []);
+    }, [fetchMovies]);
+
+    // --- НОВЫЙ БЛОК: Обработчики для UI ---
+    const handleFilterChange = (e) => {
+        const { name, value } = e.target;
+        setFilters(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSort = (key) => {
+        setSort(prev => {
+            if (prev.key === key) {
+                return { key, order: prev.order === 'asc' ? 'desc' : 'asc' };
+            }
+            return { key, order: 'asc' };
+        });
+    };
+
+    const getSortIndicator = (key) => {
+        if (sort.key === key) {
+            return sort.order === 'asc' ? ' ▲' : ' ▼';
+        }
+        return '';
+    };
 
     const handleAddMovie = () => {
         setMovieToEdit(null);
@@ -75,7 +109,6 @@ const MovieList = () => {
 
     const handleFormSubmit = () => {
         setIsModalOpen(false);
-
     };
 
     const handleGetSum = async () => {
@@ -128,60 +161,31 @@ const MovieList = () => {
         }
     };
 
-
-    const requestSort = (key) => {
-        let direction = 'ascending';
-        if (sortConfig.key === key && sortConfig.direction === 'ascending') {
-            direction = 'descending';
+    const handleNextPage = () => {
+        if (pagination.page < pagination.totalPages - 1) {
+            setPagination(prev => ({ ...prev, page: prev.page + 1 }));
         }
-        setSortConfig({ key, direction });
     };
 
-    const getSortIndicator = (key) => {
-        if (sortConfig.key !== key) return null;
-        return sortConfig.direction === 'ascending' ? ' ▲' : ' ▼';
+    const handlePrevPage = () => {
+        if (pagination.page > 0) {
+            setPagination(prev => ({ ...prev, page: prev.page - 1 }));
+        }
     };
-
-    const processedMovies = useMemo(() => {
-        let processableMovies = [...movies];
-        if (filter) {
-            processableMovies = processableMovies.filter(movie => {
-                const valueToFilter = filterColumn === 'director' ? movie.director?.name : movie[filterColumn];
-                return valueToFilter?.toString().toLowerCase() === filter.toLowerCase();
-            });
-        }
-        if (sortConfig.key !== null) {
-            processableMovies.sort((a, b) => {
-                const valA = sortConfig.key === 'director' ? a.director?.name : a[sortConfig.key];
-                const valB = sortConfig.key === 'director' ? b.director?.name : b[sortConfig.key];
-                if (valA == null) return 1; if (valB == null) return -1;
-                if (valA < valB) return sortConfig.direction === 'ascending' ? -1 : 1;
-                if (valA > valB) return sortConfig.direction === 'ascending' ? 1 : -1;
-                return 0;
-            });
-        }
-        return processableMovies;
-    }, [movies, filter, filterColumn, sortConfig]);
-
 
     return (
         <>
             <div className="container">
                 <h1>Movie Information System</h1>
                 <div className="controls-container">
+                    {/* --- НОВЫЙ БЛОК: Фильтры --- */}
                     <div className="filter-container">
-                        <select value={filterColumn} onChange={e => setFilterColumn(e.target.value)}>
-                            <option value="name">Name</option>
-                            <option value="genre">Genre</option>
-                            <option value="director">Director</option>
-                            <option value="tagline">Tagline</option>
+                        <input type="text" name="name" placeholder="Filter by Name (exact match)" value={filters.name} onChange={handleFilterChange} />
+                        <input type="text" name="directorName" placeholder="Filter by Director (exact match)" value={filters.directorName} onChange={handleFilterChange} />
+                        <select name="genre" value={filters.genre} onChange={handleFilterChange}>
+                            <option value="">All Genres</option>
+                            {genres.map(g => <option key={g} value={g}>{g}</option>)}
                         </select>
-                        <input
-                            type="text"
-                            placeholder="Filter by exact match (case-insensitive)..."
-                            value={filter}
-                            onChange={(e) => setFilter(e.target.value)}
-                        />
                     </div>
                     <button className="button button-primary" onClick={handleAddMovie}>Add New Movie</button>
                 </div>
@@ -189,17 +193,18 @@ const MovieList = () => {
                 <table>
                     <thead>
                     <tr>
-                        <th onClick={() => requestSort('id')}>ID{getSortIndicator('id')}</th>
-                        <th onClick={() => requestSort('name')}>Name{getSortIndicator('name')}</th>
-                        <th onClick={() => requestSort('genre')}>Genre{getSortIndicator('genre')}</th>
-                        <th onClick={() => requestSort('director')}>Director{getSortIndicator('director')}</th>
-                        <th onClick={() => requestSort('oscarsCount')}>Oscars{getSortIndicator('oscarsCount')}</th>
-                        <th onClick={() => requestSort('budget')}>Budget{getSortIndicator('budget')}</th>
+                        {/* --- Обновленные заголовки для сортировки --- */}
+                        <th onClick={() => handleSort('id')}>ID{getSortIndicator('id')}</th>
+                        <th onClick={() => handleSort('name')}>Name{getSortIndicator('name')}</th>
+                        <th onClick={() => handleSort('genre')}>Genre{getSortIndicator('genre')}</th>
+                        <th onClick={() => handleSort('director.name')}>Director{getSortIndicator('director.name')}</th>
+                        <th onClick={() => handleSort('oscarsCount')}>Oscars{getSortIndicator('oscarsCount')}</th>
+                        <th onClick={() => handleSort('budget')}>Budget{getSortIndicator('budget')}</th>
                         <th>Actions</th>
                     </tr>
                     </thead>
                     <tbody>
-                    {processedMovies.map((movie) => (
+                    {movies.map((movie) => (
                         <tr key={movie.id}>
                             <td>{movie.id}</td>
                             <td>{movie.name}</td>
@@ -215,6 +220,18 @@ const MovieList = () => {
                     ))}
                     </tbody>
                 </table>
+
+                <div className="pagination-controls">
+                    <button onClick={handlePrevPage} disabled={pagination.page === 0} className="button">
+                        Previous
+                    </button>
+                    <span>
+                        Page {pagination.page + 1} of {pagination.totalPages || 1}
+                    </span>
+                    <button onClick={handleNextPage} disabled={pagination.page >= pagination.totalPages - 1} className="button">
+                        Next
+                    </button>
+                </div>
 
                 {isModalOpen && (
                     <MovieForm

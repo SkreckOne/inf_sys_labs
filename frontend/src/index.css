@@ -205,3 +205,11 @@ tbody tr:hover {
 .op-item button:hover {
     background-color: #2980b9;
 }
+
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 20px;
+}

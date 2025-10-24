@@ -7,6 +7,9 @@ import org.lab1.service.MovieService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 
 import java.util.List;
 
@@ -18,8 +21,13 @@ public class MovieController {
     private final MovieService movieService;
 
     @GetMapping
-    public ResponseEntity<List<MovieDto>> getAllMovies() {
-        return ResponseEntity.ok(movieService.findAllMovies());
+    public ResponseEntity<Page<MovieDto>> getAllMovies(
+            Pageable pageable,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String genre,
+            @RequestParam(required = false) String directorName
+    ) {
+        return ResponseEntity.ok(movieService.findAllMovies(pageable, name, genre, directorName));
     }
 
     @GetMapping("/{id}")

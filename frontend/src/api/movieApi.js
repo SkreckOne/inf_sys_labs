@@ -3,7 +3,17 @@ import axios from 'axios';
 const MOVIES_API_URL = '/api/movies';
 const OPS_API_URL = '/api/operations';
 
-export const getMovies = () => axios.get(MOVIES_API_URL);
+export const getMovies = (page = 0, size = 10, filters = {}, sort = { key: 'id', order: 'asc' }) => {
+    let params = `page=${page}&size=${size}&sort=${sort.key},${sort.order}`;
+
+    Object.keys(filters).forEach(key => {
+        if (filters[key]) {
+            params += `&${key}=${encodeURIComponent(filters[key])}`;
+        }
+    });
+
+    return axios.get(`${MOVIES_API_URL}?${params}`);
+};
 export const getMovieById = (id) => axios.get(`${MOVIES_API_URL}/${id}`);
 export const createMovie = (movie) => axios.post(MOVIES_API_URL, movie);
 export const updateMovie = (id, movie) => axios.put(`${MOVIES_API_URL}/${id}`, movie);
