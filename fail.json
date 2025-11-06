@@ -1,0 +1,46 @@
+[
+  {
+    "name": "Broken Movie 1",
+    "coordinates": {
+      "x": 600.0,
+      "y": -400
+    },
+    "oscarsCount": 5,
+    "budget": -5000,
+    "totalBoxOffice": 1000000,
+    "mpaaRating": "INVALID_RATING",
+    "director": {
+      "name": "Director Name",
+      "eyeColor": "GREEN",
+      "location": null
+    },
+    "operator": {
+      "name": "Op Name",
+      "eyeColor": "BROWN"
+    },
+    "goldenPalmCount": 1,
+    "usaBoxOffice": 500000,
+    "tagline": "Short tagline",
+    "genre": "COMEDY"
+  },
+  {
+    "name": "",
+    "coordinates": {
+      "x": 100.0,
+      "y": 100
+    },
+    "oscarsCount": 2,
+    "budget": 1000,
+    "totalBoxOffice": 1000,
+    "mpaaRating": "PG",
+    "director": null,
+    "operator": {
+      "name": "Op 2",
+      "eyeColor": "WHITE"
+    },
+    "goldenPalmCount": 1,
+    "usaBoxOffice": 100,
+    "tagline": "Это очень, очень, очень, очень, очень, очень, очень, очень, очень, очень, очень, очень, очень, очень, очень, очень, очень, очень, очень, очень, очень, очень, очень длинный слоган, который превышает допустимый лимит в 168 символов, установленный в наших требованиях к валидации, чтобы проверить, работает ли проверка длины строки корректно.",
+    "genre": "ADVENTURE"
+  }
+]

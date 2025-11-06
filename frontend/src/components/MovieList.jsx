@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import * as movieApi from '../api/movieApi';
 import MovieForm from './MovieForm';
+import ImportModal from './ImportModal';
+import ImportHistory from './ImportHistory';
 
 const MovieList = () => {
     const [movies, setMovies] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     const [movieToEdit, setMovieToEdit] = useState(null);
 
     const [pagination, setPagination] = useState({
@@ -58,6 +61,7 @@ const MovieList = () => {
         eventSource.addEventListener('movie-deleted', handleEvent);
         eventSource.addEventListener('movies-deleted-by-genre', handleEvent);
         eventSource.addEventListener('oscars-redistributed', handleEvent);
+        eventSource.addEventListener('movies-imported', handleEvent);
 
         return () => {
             console.log("Closing SSE connection.");
@@ -187,7 +191,14 @@ const MovieList = () => {
                             {genres.map(g => <option key={g} value={g}>{g}</option>)}
                         </select>
                     </div>
-                    <button className="button button-primary" onClick={handleAddMovie}>Add New Movie</button>
+                    <div>
+                        <button className="button button-secondary" onClick={() => setIsImportModalOpen(true)}>
+                            Import from JSON
+                        </button>
+                        <button className="button button-primary" onClick={handleAddMovie}>
+                            Add New Movie
+                        </button>
+                    </div>
                 </div>
 
                 <table>
@@ -240,6 +251,12 @@ const MovieList = () => {
                         onCancel={() => setIsModalOpen(false)}
                     />
                 )}
+                {isImportModalOpen && (
+                    <ImportModal
+                        onClose={() => setIsImportModalOpen(false)}
+                        onImportSuccess={fetchMovies}
+                    />
+                )}
             </div>
 
             <div className="special-ops-container">
@@ -278,6 +295,9 @@ const MovieList = () => {
                         <button onClick={handleRedistribute} className="button-secondary">Redistribute Oscars</button>
                     </div>
                 </div>
+            </div>
+            <div className="container" style={{marginTop: '20px'}}>
+                <ImportHistory />
             </div>
         </>
     );

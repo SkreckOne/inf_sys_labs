@@ -1,13 +1,7 @@
 package org.lab1.mapper;
 
-import org.lab1.dto.CoordinatesDto;
-import org.lab1.dto.LocationDto;
-import org.lab1.dto.MovieDto;
-import org.lab1.dto.PersonDto;
-import org.lab1.model.Coordinates;
-import org.lab1.model.Location;
-import org.lab1.model.Movie;
-import org.lab1.model.Person;
+import org.lab1.dto.*;
+import org.lab1.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -133,5 +127,22 @@ public class DtoMapper {
     public static List<PersonDto> toPersonDtoList(List<Person> persons) {
         if (persons == null) return new ArrayList<>();
         return persons.stream().map(DtoMapper::toPersonDto).collect(Collectors.toList());
+    }
+
+
+    public static ImportHistoryDto toImportHistoryDto(ImportHistory entity) {
+        if (entity == null) return null;
+        ImportHistoryDto dto = new ImportHistoryDto();
+        dto.setId(entity.getId());
+        dto.setImportDate(entity.getImportDate());
+        dto.setStatus(entity.getStatus());
+        dto.setImportedCount(entity.getImportedCount());
+        dto.setDetails(entity.getDetails());
+        return dto;
+    }
+
+    public static List<ImportHistoryDto> toImportHistoryDtoList(List<ImportHistory> history) {
+        if (history == null) return new ArrayList<>();
+        return history.stream().map(DtoMapper::toImportHistoryDto).collect(Collectors.toList());
     }
 }

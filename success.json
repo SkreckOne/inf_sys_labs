@@ -1,0 +1,85 @@
+[
+  {
+    "name": "Interstellar",
+    "coordinates": {
+      "x": 500.0,
+      "y": 100
+    },
+    "oscarsCount": 1,
+    "budget": 165000000,
+    "totalBoxOffice": 677471339,
+    "mpaaRating": "PG_13",
+    "director": {
+      "name": "Christopher Nolan",
+      "eyeColor": "GREEN",
+      "hairColor": "BROWN",
+      "location": {
+        "x": -0.1,
+        "y": 51,
+        "z": 10.0,
+        "name": "London"
+      },
+      "birthday": "1970-07-30T10:00:00Z",
+      "weight": 75.0
+    },
+    "screenwriter": null,
+    "operator": {
+      "name": "Hoyte van Hoytema",
+      "eyeColor": "BROWN",
+      "hairColor": null,
+      "location": null,
+      "birthday": null,
+      "weight": 80.0
+    },
+    "length": 169,
+    "goldenPalmCount": 1,
+    "usaBoxOffice": 188020017,
+    "tagline": "Mankind was born on Earth. It was never meant to die here.",
+    "genre": "SCIENCE_FICTION"
+  },
+  {
+    "name": "Parasite",
+    "coordinates": {
+      "x": 127.0,
+      "y": 37
+    },
+    "oscarsCount": 4,
+    "budget": 11400000,
+    "totalBoxOffice": 263100000,
+    "mpaaRating": "NC_17",
+    "director": {
+      "name": "Bong Joon-ho",
+      "eyeColor": "BROWN",
+      "hairColor": null,
+      "location": {
+        "x": 127.0,
+        "y": 37,
+        "z": 5.5,
+        "name": "Seoul"
+      },
+      "birthday": "1969-09-14T00:00:00Z",
+      "weight": 82.0
+    },
+    "screenwriter": {
+      "name": "Han Jin-won",
+      "eyeColor": "BROWN",
+      "hairColor": null,
+      "location": null,
+      "birthday": null,
+      "weight": 70.0
+    },
+    "operator": {
+      "name": "Hong Kyung-pyo",
+      "eyeColor": "BROWN",
+      "hairColor": "BROWN",
+      "location": null,
+      "birthday": null,
+      "weight": null
+    },
+    "length": 132,
+    "goldenPalmCount": 1,
+    "usaBoxOffice": 53369749,
+    "tagline": "Act like you own the place.",
+    "genre": "DRAMA"
+  }
+]

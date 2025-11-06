@@ -18,10 +18,9 @@ public class Movie {
     @Column(nullable = false)
     private String name;
 
-    // --- ИСПРАВЛЕНИЕ 1: Добавлена аннотация @OnDelete ---
-    // Эта аннотация говорит базе данных (а не Hibernate), что при удалении Movie
-    // нужно каскадно удалить и связанную запись в таблице Coordinates.
-    // Это самый надежный способ избежать "осиротевших" координат.
+    @Version
+    private Integer version;
+
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "coordinates_id", referencedColumnName = "id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
@@ -42,9 +41,6 @@ public class Movie {
     @Column(nullable = false)
     private MpaaRating mpaaRating;
 
-    // --- ИСПРАВЛЕНИЕ 2: Возвращаем CascadeType.ALL, но в Person добавляем защиту от удаления ---
-    // Это самая надежная стратегия: каскадировать все операции (создание, обновление),
-    // но явно запретить каскадное удаление Person.
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH})
     @JoinColumn(name = "director_id", nullable = false)
     private Person director;

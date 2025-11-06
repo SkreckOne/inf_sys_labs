@@ -14,6 +14,15 @@ export const getMovies = (page = 0, size = 10, filters = {}, sort = { key: 'id',
 
     return axios.get(`${MOVIES_API_URL}?${params}`);
 };
+export const importMovies = (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return axios.post('/api/import', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+};
 export const getMovieById = (id) => axios.get(`${MOVIES_API_URL}/${id}`);
 export const createMovie = (movie) => axios.post(MOVIES_API_URL, movie);
 export const updateMovie = (id, movie) => axios.put(`${MOVIES_API_URL}/${id}`, movie);
@@ -24,3 +33,4 @@ export const getGoldenPalmSum = () => axios.get(`${OPS_API_URL}/golden-palm-sum`
 export const findMoviesByTagline = (substring) => axios.get(`${OPS_API_URL}/tagline?contains=${substring}`);
 export const getScreenwritersWithoutOscars = () => axios.get(`${OPS_API_URL}/screenwriters-no-oscars`);
 export const redistributeOscars = (fromGenre, toGenre) => axios.post(`${OPS_API_URL}/redistribute-oscars?from=${fromGenre}&to=${toGenre}`);
+export const getImportHistory = () => axios.get('/api/import/history');
