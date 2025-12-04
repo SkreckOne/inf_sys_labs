@@ -31,16 +31,14 @@ public class MinioService {
 
     @PostConstruct
     public void init() {
-        // Инициализация клиента
         minioClient = MinioClient.builder()
                 .endpoint(url)
                 .credentials(accessKey, secretKey)
                 .build();
 
-        // Логика повторных попыток подключения (Retry), так как MinIO может грузиться дольше бэкенда
         int attempts = 0;
-        int maxAttempts = 12; // 12 попыток
-        long delay = 5000;    // 5 секунд пауза
+        int maxAttempts = 12;
+        long delay = 5000;
 
         while (attempts < maxAttempts) {
             try {
@@ -51,7 +49,6 @@ public class MinioService {
                 } else {
                     log.info("MinIO bucket '{}' already exists.", bucketName);
                 }
-                // Если мы здесь, значит подключение успешно
                 return;
 
             } catch (Exception e) {
