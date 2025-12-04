@@ -24,10 +24,15 @@ public class ImportHistory {
     @Column(length = 1024)
     private String details;
 
-    public ImportHistory(String status, Integer importedCount, String details) {
+    @Column(name = "object_name")
+    private String objectName;
+
+
+    public ImportHistory(String status, Integer importedCount, String details, String objectName) {
         this.importDate = LocalDateTime.now();
         this.status = status;
         this.importedCount = importedCount;
         this.details = details;
+        this.objectName = objectName;
     }
 }

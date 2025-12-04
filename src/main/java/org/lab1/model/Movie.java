@@ -2,14 +2,19 @@ package org.lab1.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.lab1.enums.MovieGenre;
 import org.lab1.enums.MpaaRating;
 import java.time.LocalDate;
+import jakarta.persistence.Cacheable;
+import org.hibernate.annotations.Cache;
 
 @Data
 @Entity
+@Cacheable
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Movie {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)

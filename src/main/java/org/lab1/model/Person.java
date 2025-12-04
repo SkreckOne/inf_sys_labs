@@ -2,11 +2,14 @@ package org.lab1.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.lab1.enums.Color;
 import java.time.ZonedDateTime;
 
 @Data
 @Entity
+@Cacheable
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Person {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)

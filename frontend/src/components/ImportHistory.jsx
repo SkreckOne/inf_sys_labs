@@ -25,6 +25,10 @@ const ImportHistory = () => {
         fetchHistory();
     }, []);
 
+    const handleDownload = (objectName) => {
+        window.location.href = `/api/import/file/${objectName}`;
+    };
+
     if (loading) return <p>Loading history...</p>;
     if (error) return <p style={{ color: 'red' }}>{error}</p>;
 
@@ -40,6 +44,7 @@ const ImportHistory = () => {
                     <th>Status</th>
                     <th>Imported Count</th>
                     <th>Details</th>
+                    <th>File</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -49,11 +54,26 @@ const ImportHistory = () => {
                         <td>{new Date(item.importDate).toLocaleString()}</td>
                         <td style={{ color: item.status === 'SUCCESS' ? 'green' : 'red' }}>{item.status}</td>
                         <td>{item.status === 'SUCCESS' ? item.importedCount : 'N/A'}</td>
-                        <td style={{maxWidth: '400px', overflowWrap: 'break-word'}}>{item.details}</td>
+                        <td style={{maxWidth: '300px', overflowWrap: 'break-word'}}>{item.details}</td>
+
+                        <td>
+                            {item.objectName ? (
+                                <button
+                                    className="button button-secondary"
+                                    style={{fontSize: '0.8rem', padding: '5px 10px'}}
+                                    onClick={() => handleDownload(item.objectName)}
+                                >
+                                    Download
+                                </button>
+                            ) : (
+                                <span style={{color: '#ccc'}}>-</span>
+                            )}
+                        </td>
+
                     </tr>
                 )) : (
                     <tr>
-                        <td colSpan="5">No import history found.</td>
+                        <td colSpan="6">No import history found.</td>
                     </tr>
                 )}
                 </tbody>

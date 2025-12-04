@@ -10,4 +10,5 @@ public class ImportHistoryDto {
     private String status;
     private Integer importedCount;
     private String details;
+    private String objectName;
 }

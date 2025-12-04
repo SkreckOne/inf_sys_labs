@@ -17,8 +17,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,21 +31,33 @@ public class ImportService {
     private final ImportHistoryRepository importHistoryRepository;
     private final Validator validator;
     private final ApplicationEventPublisher eventPublisher;
+    private final MinioService minioService;
 
 
     public void importMoviesFromJson(MultipartFile file) {
+        String objectName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+
         try {
+            minioService.uploadFile(objectName, file);
+
+            InputStream stream = minioService.downloadFile(objectName);
+
             ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
-            List<MovieDto> movieDtos = mapper.readValue(file.getInputStream(), new TypeReference<>() {});
+            List<MovieDto> movieDtos = mapper.readValue(stream, new TypeReference<>() {});
 
             int importedCount = processMoviesTransactionally(movieDtos);
 
-            importHistoryRepository.save(new ImportHistory("SUCCESS", importedCount, "Import successful"));
+            importHistoryRepository.save(new ImportHistory("SUCCESS", importedCount, "Import successful", objectName));
+
             eventPublisher.publishEvent(new SseEvent("movies-imported", importedCount));
 
         } catch (Exception e) {
-            importHistoryRepository.save(new ImportHistory("FAILURE", null, e.getMessage()));
-            throw new RuntimeException("Failed to import movies: " + e.getMessage(), e);
+
+            minioService.deleteFile(objectName);
+
+            importHistoryRepository.save(new ImportHistory("FAILURE", null, "Error: " + e.getMessage(), null));
+
+            throw new RuntimeException("Import failed: " + e.getMessage(), e);
         }
     }
 
@@ -51,18 +65,20 @@ public class ImportService {
     @Transactional(rollbackFor = Exception.class)
     public int processMoviesTransactionally(List<MovieDto> movieDtos) {
         for (int i = 0; i < movieDtos.size(); i++) {
-            final int movieIndex = i;
             MovieDto dto = movieDtos.get(i);
             Set<ConstraintViolation<MovieDto>> violations = validator.validate(dto);
             if (!violations.isEmpty()) {
                 String errorDetails = violations.stream()
-                        .map(v -> "Movie at index " + movieIndex + ", field '" + v.getPropertyPath() + "': " + v.getMessage())
+                        .map(v -> v.getPropertyPath() + ": " + v.getMessage())
                         .collect(Collectors.joining("; "));
-                throw new RuntimeException("Validation failed: " + errorDetails);
+                throw new RuntimeException("Validation failed at item " + i + ": " + errorDetails);
             }
         }
 
-        List<Movie> movies = movieDtos.stream().map(DtoMapper::toMovieEntity).collect(Collectors.toList());
+        List<Movie> movies = movieDtos.stream()
+                .map(DtoMapper::toMovieEntity)
+                .collect(Collectors.toList());
+
         movieRepository.saveAll(movies);
 
         return movies.size();
@@ -71,5 +87,9 @@ public class ImportService {
     @Transactional(readOnly = true)
     public List<ImportHistory> getImportHistory() {
         return importHistoryRepository.findAll();
+    }
+
+    public InputStream getFileStream(String objectName) {
+        return minioService.downloadFile(objectName);
     }
 }

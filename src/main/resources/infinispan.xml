@@ -1,0 +1,22 @@
+<infinispan
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="urn:infinispan:config:15.0 https://infinispan.org/schemas/infinispan-config-15.0.xsd"
+        xmlns="urn:infinispan:config:15.0">
+
+    <!-- Важно: statistics="true" для работы нашего AOP -->
+    <cache-container name="default" statistics="true">
+        <!-- local-cache гарантирует, что не будет использоваться JGroups/Сеть -->
+        <local-cache name="default" simple-cache="true">
+            <expiration lifespan="3600000"/>
+        </local-cache>
+
+        <local-cache name="entity" simple-cache="true">
+            <expiration lifespan="3600000"/>
+        </local-cache>
+
+        <local-cache name="query" simple-cache="true">
+            <expiration lifespan="3600000"/>
+        </local-cache>
+    </cache-container>
+
+</infinispan>

@@ -138,6 +138,7 @@ public class DtoMapper {
         dto.setStatus(entity.getStatus());
         dto.setImportedCount(entity.getImportedCount());
         dto.setDetails(entity.getDetails());
+        dto.setObjectName(entity.getObjectName());
         return dto;
     }
 

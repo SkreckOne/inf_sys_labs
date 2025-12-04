@@ -36,4 +36,17 @@ public class ImportController {
     public ResponseEntity<List<ImportHistoryDto>> getHistory() {
         return ResponseEntity.ok(DtoMapper.toImportHistoryDtoList(importService.getImportHistory()));
     }
+
+    @GetMapping("/file/{objectName}")
+    public ResponseEntity<org.springframework.core.io.InputStreamResource> downloadFile(@PathVariable String objectName) {
+        try {
+            java.io.InputStream is = importService.getFileStream(objectName);
+            return ResponseEntity.ok()
+                    .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + objectName + "\"")
+                    .contentType(org.springframework.http.MediaType.APPLICATION_OCTET_STREAM)
+                    .body(new org.springframework.core.io.InputStreamResource(is));
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }
