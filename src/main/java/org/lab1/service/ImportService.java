@@ -33,25 +33,22 @@ public class ImportService {
     private final ApplicationEventPublisher eventPublisher;
     private final MinioService minioService;
 
-    // Добавили аргумент boolean simulateError
     public void importMoviesFromJson(MultipartFile file, boolean simulateError) {
         String objectName = UUID.randomUUID() + "_" + file.getOriginalFilename();
 
         try {
-            // 1. MinIO Upload
+
             minioService.uploadFile(objectName, file);
 
-            // --- ТОЧКА СИМУЛЯЦИИ ОШИБКИ ---
+
             if (simulateError) {
                 throw new RuntimeException("Simulated Server Logic Error (Testing Distributed Transaction)");
             }
-            // ------------------------------
 
             InputStream stream = minioService.downloadFile(objectName);
             ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
             List<MovieDto> movieDtos = mapper.readValue(stream, new TypeReference<>() {});
 
-            // 2. DB Save
             int importedCount = processMoviesTransactionally(movieDtos);
 
             importHistoryRepository.save(new ImportHistory("SUCCESS", importedCount, "Import successful", objectName));
